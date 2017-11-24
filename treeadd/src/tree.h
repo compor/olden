@@ -15,7 +15,7 @@ typedef struct tree {
 } tree_t;
 
 extern tree_t *TreeAlloc (int level, int lo, int hi);
-int TreeAdd (tree_t *t);
+int TreeAdd (int inc_level, tree_t *t);
 
 
 

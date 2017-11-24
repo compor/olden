@@ -120,7 +120,7 @@ int main (int argc, char *argv[])
 
 /* TreeAdd:
  */
-int TreeAdd (tree_t *t)
+int TreeAdd (int inc_level, tree_t *t)
 {
   if (t == NULL)  {
     return 0;
@@ -151,11 +151,11 @@ int TreeAdd (tree_t *t)
     int value;
 
     tleft = t->left;            /* <---- 57% load penalty */
-    leftval = TreeAdd(tleft);
+    leftval = TreeAdd(inc_level + 1, tleft);
     tright = t->right;          /* <---- 11.4% load penalty */
-    rightval = TreeAdd(tright);
+    rightval = TreeAdd(inc_level + 1, tright);
     /*chatting("after touch\n");*/
-    value = t->val;             
+    value = t->val;
     /*chatting("returning from treeadd %d\n",*/
 	     /*leftval.value + rightval.value + value);*/
     return leftval + rightval + value;
