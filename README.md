@@ -12,6 +12,9 @@ The main modifications performed in preparation for usage with [this][3] build h
 
 Older/initial versions that were found in the interwebs were placed in archives under the `utils/archives` subdirectory.
 
+The branch `original_source` contains the initially committed source without any changes, and as such it will never 
+accept any patches.
+
 
 [1]: http://www.martincarlisle.com/olden.html
 [2]: README.old.txt
