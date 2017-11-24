@@ -24,6 +24,8 @@
 extern int NumNodes;
 #endif
 
+extern int runs;
+
 int dealwithargs(int argc, char *argv[]);
 
 typedef struct {
@@ -52,14 +54,14 @@ int main (int argc, char *argv[])
     CMMD_node_timer_clear(1);
 #endif
 #ifdef TORONTO
-    chatting("Treeadd with %d levels on %d processors \n",
-	     level, NumNodes);
+    chatting("Treeadd with %d levels on %d processors with %d runs\n",
+	     level, NumNodes, runs);
 #else
-    chatting("Treeadd with %d levels on %d processors \n",
-	     level, __NumNodes);
+    chatting("Treeadd with %d levels on %d processors with %d runs\n",
+	     level, __NumNodes, runs);
 #endif
     /* only processor 0 will continue here. */
-    chatting("About to enter TreeAlloc\n"); 
+    chatting("About to enter TreeAlloc\n");
 #ifndef TORONTO
     CMMD_node_timer_start(0);
 #endif
@@ -77,8 +79,8 @@ int main (int argc, char *argv[])
 #ifndef TORONTO
     CMMD_node_timer_stop(0);
 #endif
-    chatting("About to enter TreeAdd\n"); 
-    
+    chatting("About to enter TreeAdd\n");
+
 #ifndef PLAIN
     ClearAllStats();
 #endif
@@ -88,7 +90,7 @@ int main (int argc, char *argv[])
     OLDEN_TIME(start);
     {
         int i;
-        for (i = 0; i < 100; ++i) {
+        for (i = 0; i < runs; ++i) {
             result = TreeAdd (0, root);
         }
     }
@@ -124,7 +126,7 @@ int TreeAdd (tree_t *t)
     return 0;
   }
   else {
-#ifdef FUTURES    
+#ifdef FUTURES
     future_cell_int leftval;
     int rightval;
     tree_t *tleft, *tright;

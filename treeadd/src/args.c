@@ -11,6 +11,8 @@
 extern int __NumNodes;
 #endif
 
+int runs;
+
 extern int atoi(const char *);
 
 #ifndef TORONTO
@@ -26,6 +28,11 @@ void filestuff()
 int dealwithargs(int argc, char *argv[])
 {
   int level;
+
+  if (argc > 3)
+    runs = atoi(argv[3]);
+  else
+    runs = 100;
 
 #ifdef TORONTO
   if (argc > 2) 
