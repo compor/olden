@@ -1,14 +1,25 @@
 /* For copyright information, see olden_v1.0/COPYRIGHT */
 
-/******************************************************************* 
+/*******************************************************************
  *  Health.c : Model of the Columbian Health Care System           *
- *******************************************************************/ 
+ *******************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "health.h"
 #include <assert.h>
+
+#define USE_CITERATOR
+
+#ifdef USE_CITERATOR
+#include <vector>
+#include <algorithm>
+#include <random>
+
+std::random_device rd;
+std::mt19937 g(rd());
+#endif // USE_CITERATOR
 
 int  max_level;
 long max_time;
@@ -18,40 +29,40 @@ struct Village *alloc_tree(int level, int label, struct Village *back) {
   if (level == 0)
     return NULL;
   else {
-    struct Village       *new;
+    struct Village       *newp;
     int                  i;
     struct Village       *fval[4];
 
-    new = (struct Village *)malloc(sizeof(struct Village));
+    newp = (struct Village *)malloc(sizeof(struct Village));
 
     for (i = 3; i >= 0; i--)
-      fval[i] = alloc_tree(level - 1, label*4 + i + 1, new); 
+      fval[i] = alloc_tree(level - 1, label*4 + i + 1, newp);
 
-    new->back = back;
-    new->label = label;
-    new->seed = label * (IQ + seed); 
-    new->hosp.personnel = (int)pow(2, level - 1);
-    new->hosp.free_personnel = new->hosp.personnel;
-    new->hosp.num_waiting_patients = 0;
-    new->hosp.assess.forward = NULL;
-    new->hosp.assess.back = NULL;
-    new->hosp.assess.patient = NULL;  /* ADDED FOR LLVM [OLDEN BUGS!] */
-    new->hosp.waiting.forward = NULL;
-    new->hosp.waiting.back = NULL;
-    new->hosp.waiting.patient = NULL; /* ADDED FOR LLVM [OLDEN BUGS!] */
-    new->hosp.inside.forward = NULL;
-    new->hosp.inside.back = NULL;
-    new->hosp.inside.patient = NULL;  /* ADDED FOR LLVM [OLDEN BUGS!] */
-    new->hosp.up.forward = NULL;      /* ADDED FOR LLVM [OLDEN BUGS!] */
-    new->hosp.up.back = NULL;         /* ADDED FOR LLVM [OLDEN BUGS!] */
-    new->hosp.up.patient = NULL;      /* ADDED FOR LLVM [OLDEN BUGS!] */
-    new->returned.back = NULL;
-    new->returned.forward = NULL;
+    newp->back = back;
+    newp->label = label;
+    newp->seed = label * (IQ + seed);
+    newp->hosp.personnel = (int)pow(2, level - 1);
+    newp->hosp.free_personnel = newp->hosp.personnel;
+    newp->hosp.num_waiting_patients = 0;
+    newp->hosp.assess.forward = NULL;
+    newp->hosp.assess.back = NULL;
+    newp->hosp.assess.patient = NULL;  /* ADDED FOR LLVM [OLDEN BUGS!] */
+    newp->hosp.waiting.forward = NULL;
+    newp->hosp.waiting.back = NULL;
+    newp->hosp.waiting.patient = NULL; /* ADDED FOR LLVM [OLDEN BUGS!] */
+    newp->hosp.inside.forward = NULL;
+    newp->hosp.inside.back = NULL;
+    newp->hosp.inside.patient = NULL;  /* ADDED FOR LLVM [OLDEN BUGS!] */
+    newp->hosp.up.forward = NULL;      /* ADDED FOR LLVM [OLDEN BUGS!] */
+    newp->hosp.up.back = NULL;         /* ADDED FOR LLVM [OLDEN BUGS!] */
+    newp->hosp.up.patient = NULL;      /* ADDED FOR LLVM [OLDEN BUGS!] */
+    newp->returned.back = NULL;
+    newp->returned.forward = NULL;
 
     for (i = 0; i < 4; i++)
-      new->forward[i] = fval[i];
+      newp->forward[i] = fval[i];
 
-    return new;
+    return newp;
   }
 }
 
@@ -86,20 +97,20 @@ struct Results get_results(struct Village *village) {
   while (list != NULL) {
     p = list->patient;
     r1.total_hosps += (float)(p->hosps_visited);
-    r1.total_time += (float)(p->time); 
+    r1.total_time += (float)(p->time);
     r1.total_patients += 1.0;
     list = list->forward;
   }
 
-  return r1; 
+  return r1;
 }
 
-void check_patients_inside(struct Village *village, struct List *list) 
+void check_patients_inside(struct Village *village, struct List *list)
 {
   struct List            *l;
   struct Patient         *p;
   int                     t;
-  
+
   while (list != NULL) {
     p = list->patient;
     t = p->time_left;
@@ -108,11 +119,11 @@ void check_patients_inside(struct Village *village, struct List *list)
       t = village->hosp.free_personnel;
       village->hosp.free_personnel = t+1;
       l = &(village->hosp.inside);
-      removeList(l, p); 
+      removeList(l, p);
       l = &(village->returned);
-      addList(l, p); }    
+      addList(l, p); }
     list = list->forward;       /* :) adt_pf detected */
-  } 
+  }
 }
 
 struct List *check_patients_assess(struct Village *village, struct List *list) {
@@ -127,7 +138,7 @@ struct List *check_patients_assess(struct Village *village, struct List *list) {
     t = p->time_left;
     p->time_left = t - 1;
     label = village->label;
-    if (p->time_left == 0) { 
+    if (p->time_left == 0) {
       s = village->seed;
       rand = my_rand(s);
       village->seed = (long long)(rand * IM);
@@ -137,17 +148,17 @@ struct List *check_patients_assess(struct Village *village, struct List *list) {
         addList(&village->hosp.inside, p);
         p->time_left = 10;
         t = p->time;
-        p->time = t + 10; 
+        p->time = t + 10;
       } else {
         t = village->hosp.free_personnel;
         village->hosp.free_personnel = t+1;
-        
+
         removeList(&village->hosp.assess, p);
         up = &village->hosp.up;
         addList(up, p);
       }
     }
-    
+
     list = list->forward;             /* :) adt_pf detected */
   }
   return up;
@@ -156,7 +167,37 @@ struct List *check_patients_assess(struct Village *village, struct List *list) {
 void check_patients_waiting(struct Village *village, struct List *list) {
   int i, t;
   struct Patient *p;
-  
+
+#ifdef USE_CITERATOR
+  std::vector<struct List *> LDSStore;
+
+  while (list != NULL) {
+    LDSStore.push_back(list);
+    list = list->forward;
+  }
+
+  std::shuffle(LDSStore.begin(), LDSStore.end(), g);
+#endif // USE_CITERATOR
+
+#ifdef USE_CITERATOR
+  for(unsigned j = 0; j < LDSStore.size(); ++j) {
+    List *list = LDSStore[j];
+    i = village->hosp.free_personnel;
+    p = list->patient;
+    if (i > 0) {
+      t = village->hosp.free_personnel;
+      village->hosp.free_personnel = t-1;
+      p->time_left = 3;
+      t = p->time;
+      p->time = t + 3;
+
+      removeList(&village->hosp.waiting, p);
+      addList(&village->hosp.assess, p); }
+    else {
+      t = p->time;
+      p->time = t + 1; }
+  }
+#else
   while (list != NULL) {
     i = village->hosp.free_personnel;
     p = list->patient;
@@ -173,6 +214,7 @@ void check_patients_waiting(struct Village *village, struct List *list) {
       t = p->time;
       p->time = t + 1; }
     list = list->forward; }         /* :) adt_pf detected */
+#endif // USE_CITERATOR
 }
 
 
@@ -183,22 +225,22 @@ void put_in_hosp(struct Hosp *hosp, struct Patient *patient) {
   if (hosp->free_personnel > 0) {
     t = hosp->free_personnel;
     hosp->free_personnel = t-1;
-    addList(&hosp->assess, patient); 
+    addList(&hosp->assess, patient);
     patient->time_left = 3;
     t = patient->time;
-    patient->time = t + 3; 
+    patient->time = t + 3;
   } else {
-    addList(&hosp->waiting, patient); 
+    addList(&hosp->waiting, patient);
   }
 }
 
-struct Patient *generate_patient(struct Village *village) 
+struct Patient *generate_patient(struct Village *village)
 {
   long long       s,newseed;
   struct Patient *patient;
   float rand;
   int label;
-  
+
   s = village->seed;
   rand = my_rand(s);
   village->seed = (long long)(rand * IM);
@@ -209,30 +251,30 @@ struct Patient *generate_patient(struct Village *village)
     patient->hosps_visited = 0;
     patient->time = 0;
     patient->time_left = 0;
-    patient->home_village = village; 
+    patient->home_village = village;
     return patient;
   }
-  return NULL; 
+  return NULL;
 }
 
-int main(int argc, char *argv[]) 
-{ 
+int main(int argc, char *argv[])
+{
   struct Results         results;
   struct Village         *top = 0;
   int                    i;
-  float total_time, total_patients, total_hosps;  
-  
+  float total_time, total_patients, total_hosps;
+
   dealwithargs(argc, argv);
   top = alloc_tree(max_level, 0, top);
-  
+
   chatting("\n\n    Columbian Health Care Simulator\n\n");
   chatting("Working...\n");
-  
+
   for (i = 0; i < max_time; i++) {
     if ((i % 50) == 0) chatting("%d\n", i);
     sim(top);
   }                          /* :) adt_pf detected */
-  
+
   printf("Getting Results\n");
   results = get_results(top);              /* :) adt_pf detected */
   total_patients = results.total_patients;
@@ -242,7 +284,7 @@ int main(int argc, char *argv[])
   chatting("Done.\n\n");
   chatting("# of people treated:              %f people\n",
 	   total_patients);
-  chatting("Average length of stay:           %0.2f time units\n", 
+  chatting("Average length of stay:           %0.2f time units\n",
 	   total_time / total_patients);
   chatting("Average # of hospitals visited:   %f hospitals\n\n",
 	   total_hosps / total_patients);
@@ -258,10 +300,10 @@ struct List *sim(struct Village *village)
   struct List            *l, *up;
   struct Hosp            *h;
   struct List            *val[4];
-  
+
   int label;
   if (village == NULL) return NULL;
- 
+
   label = village->label;
 
   for (i = 3; i > 0; i--) {
@@ -288,9 +330,9 @@ struct List *sim(struct Village *village)
   check_patients_inside(village, village->hosp.inside.forward);
   up = check_patients_assess(village, village->hosp.assess.forward);
   check_patients_waiting(village, village->hosp.waiting.forward);
-  
-  /*** Generate new patients ***/  
-  if ((patient = generate_patient(village)) != NULL) {  
+
+  /*** Generate new patients ***/
+  if ((patient = generate_patient(village)) != NULL) {
     label = village->label;
     put_in_hosp(&village->hosp, patient);
   }
