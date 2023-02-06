@@ -1,7 +1,7 @@
 /* For copyright information, see olden_v1.0/COPYRIGHT */
 #include <stdlib.h>
 
-extern int NumNodes;
+int NumNodes;
 extern int nbody;
 
 int dealwithargs(int argc, char *argv[]) {

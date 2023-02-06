@@ -17,7 +17,7 @@
 #define RETEST();
 /*#define isnan(xxx) 0*/
 #define PID(xxx) 0
-int NumNodes;
+extern int NumNodes;
 #endif
 
 
@@ -192,15 +192,15 @@ typedef struct {
  * ROOT: origin of tree; declared as nodeptr for tree with only 1 body.
  */
 
-global nodeptr root;
+extern nodeptr root;
 
 /*
  * Integerized coordinates: used to mantain body-tree.
  */
 
-global vector rmin;		/* lower-left corner of coordinate box      */
+extern vector rmin;		/* lower-left corner of coordinate box      */
 
-global real xxxrsize;		/* side-length of integer coordinate box    */
+extern real xxxrsize;		/* side-length of integer coordinate box    */
 
 #define IMAX_SHIFT (8 * sizeof(int) - 2)
 #define IMAX  (1 << (8 * sizeof(int) - 2))    /* highest bit of int coord */

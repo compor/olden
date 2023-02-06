@@ -15,6 +15,11 @@
 
 int nbody;
 
+extern nodeptr root;
+extern vector rmin;
+extern real xxxrsize;
+
+
 double sqrt(), xrand(), my_rand();
 real pow();
 extern icstruct intcoord(bodyptr p, treeptr t);
